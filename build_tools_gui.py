@@ -1,9 +1,7 @@
-import json
-import os
-from pathlib import Path
-import sys, requests
+import sys, os, json, requests, subprocess, threading
 import PyQt5.QtWidgets as qtw
 import PyQt5.QtCore as qtc
+from pathlib import Path
 
 version_list = []
 
@@ -55,6 +53,28 @@ class BuildToolsGui(qtw.QMainWindow):
         container = qtw.QWidget()
         container.setLayout(layout)
         self.setCentralWidget(container)
+
+    def threading_build(self):
+        threading.Thread(target=self.build, daemon=True).start()
+
+    def build(self):
+        version = self.q_version_list.currentText()
+        process = subprocess.Popen(f'java -jar BuildTools.jar --rev {version}', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='./output')
+        for line in process.stdout:
+            self.q_command_output.append(line.decode('utf-8'))
+            self.q_command_output.ensureCursorVisible()
+
+    def prepare_build(self):
+        self.working_directory = Path().absolute()
+        if self.file_manager.has_build_tools():
+             self.q_command_output.show()
+             self.threading_build()
+            
+        else:
+            response = show_message(qtw.QMessageBox.Question, 'Missing jar', 'You don\'t have BuildTools.jar in your current directory.\n Do you want to download the last version of Buildtools.jar?', True)
+
+            if response == qtw.QMessageBox.Yes:
+                self.file_manager.download_jar(self.working_directory, self.q_progressbar)
 
 class FileManager():
 
