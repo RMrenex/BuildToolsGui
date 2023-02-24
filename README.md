@@ -1,8 +1,5 @@
+
 # BuildToolsGui
-
-Simple overview of use/purpose.
-
-## Description
 
 BuildToolsGui is an application to facilitate the use of BuildTools for the laziest among us or the less competent 🙄.
 
