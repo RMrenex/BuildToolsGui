@@ -28,9 +28,8 @@ If you have any problems create a new issues.
 
 ## Authors
 
-* Erem 
 * [Twitter](https://twitter.com/RMrenex)
-* [Discord] Erem#3065
+* Discord Erem#3065
 
 ## Version History
 
@@ -43,5 +42,4 @@ This project is licensed under the MIT License - see the LICENSE.md file for det
 
 ## Acknowledgments
 
-Inspiration, code snippets, etc.
 * [BuildTools](https://www.spigotmc.org/wiki/buildtools/)
