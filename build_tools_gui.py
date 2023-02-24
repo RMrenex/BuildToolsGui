@@ -12,6 +12,9 @@ class BuildToolsGui(qtw.QMainWindow):
     q_progressbar = None
     q_version_list = None
     q_command_output = None
+    button_build = None
+    button_cancel = None
+    process = None
 
     def __init__(self):
         super().__init__()
@@ -31,8 +34,12 @@ class BuildToolsGui(qtw.QMainWindow):
         for version in version_list:
             self.q_version_list.addItem(version)
 
-        button_build = qtw.QPushButton('Build')
-        button_build.clicked.connect(lambda: self.prepare_build())
+        self.button_build = qtw.QPushButton('Build')
+        self.button_build.clicked.connect(lambda: self.prepare_build())
+
+        self.button_cancel = qtw.QPushButton('Cancel')
+        self.button_cancel.clicked.connect(lambda: self.cancel_process())
+        self.button_cancel.hide()
 
         self.q_progressbar = qtw.QProgressBar(self)
         self.q_progressbar.setGeometry(30, 40, 200, 25)
@@ -45,7 +52,8 @@ class BuildToolsGui(qtw.QMainWindow):
         self.setCentralWidget(label_choose_version)
         layout.addWidget(label_choose_version)
         layout.addWidget(self.q_version_list)
-        layout.addWidget(button_build)
+        layout.addWidget(self.button_build)
+        layout.addWidget(self.button_cancel)
         layout.addWidget(self.q_progressbar)
         layout.addWidget(self.q_command_output)
         layout.addStretch()
@@ -57,10 +65,19 @@ class BuildToolsGui(qtw.QMainWindow):
     def threading_build(self):
         threading.Thread(target=self.build, daemon=True).start()
 
+    def cancel_process(self):
+        print(self.process)
+        if self.process is not None:
+            self.process.kill()
+            self.process = None
+            self.button_build.setDisabled(False)
+            self.q_command_output.clear()
+            show_message(qtw.QMessageBox.Information, 'Process canceled', 'The installation has been cancel', False)
+
     def build(self):
         version = self.q_version_list.currentText()
-        process = subprocess.Popen(f'java -jar BuildTools.jar --rev {version}', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='./output')
-        for line in process.stdout:
+        self.process = subprocess.Popen(f'java -jar BuildTools.jar --rev {version}', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd='./output')
+        for line in self.process.stdout:
             self.q_command_output.append(line.decode('utf-8'))
             self.q_command_output.ensureCursorVisible()
 
@@ -68,8 +85,9 @@ class BuildToolsGui(qtw.QMainWindow):
         self.working_directory = Path().absolute()
         if self.file_manager.has_build_tools():
              self.q_command_output.show()
+             self.button_cancel.show()
              self.threading_build()
-            
+             self.button_build.setDisabled(True)  
         else:
             response = show_message(qtw.QMessageBox.Question, 'Missing jar', 'You don\'t have BuildTools.jar in your current directory.\n Do you want to download the last version of Buildtools.jar?', True)
 
